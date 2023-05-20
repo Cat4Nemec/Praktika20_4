@@ -1,0 +1,93 @@
+<script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU&amp;apikey=b97d6984-116c-44bf-9b5e-112aa8742dce"></script>
+<style>
+    .player {
+        width: 800px;
+        height: 400px;
+    }
+
+    .panorama-nav {
+        margin: 10px;
+    }
+</style>
+
+20.4
+<div id="player" class="player"></div>
+<p id="pindexitem" style="display:none;">0</p>
+<a href="#" id="pbacklink" class="panorama-nav">Back</a>
+<a href="#" id="pnextlink" class="panorama-nav">Next</a>
+<br>
+<br>
+<br>
+<br>
+<script src="panorama.js"></script>
+
+
+
+``` panorama.js
+let x = [58.138403,58.136603];
+let y = [52.675365,52.675626];
+var player;
+
+ymaps.ready(function () {
+	if (!ymaps.panorama.isSupported()) return;
+
+	ymaps.panorama.locate([x[0], y[0]]).done(
+		function (panoramas) {
+			if (panoramas.length > 0) {
+				player = new ymaps.panorama.Player(
+					'player',
+					panoramas[0],
+					{ direction: [227, 10] }
+				);
+			}
+		},
+		function (error) {
+		  console.error(error);
+		}
+	);
+});
+
+function updatePanorama(coords) {
+	if(player) {
+		player.destroy();
+	}
+
+	ymaps.panorama.locate(coords).done(
+	function (panoramas) {
+		if (panoramas.length > 0) {
+			player = new ymaps.panorama.Player(
+				'player',
+				panoramas[0],
+				{ direction: [227, 10] }
+			);
+			player.moveTo(coords, { direction: [227, 45], duration: 500 });
+		} else {
+			console.error('Панорама не найдена');
+		}
+	},
+	function (error) {
+		console.error(error);
+	}
+	);
+}
+
+document.getElementById('pbacklink').addEventListener('click', function() {
+	var i = parseInt(document.getElementById('pindexitem').textContent);
+	if(i == 0) {
+		i = x.length - 1;
+	} else {
+		i--;
+	}
+	updatePanorama([x[i], y[i]]);
+	document.getElementById("pindexitem").innerHTML = i;
+});
+document.getElementById('pnextlink').addEventListener('click', function() {
+	var i = parseInt(document.getElementById('pindexitem').textContent);
+	if(i == x.length - 1) {
+		i = 0;
+	} else {
+		i++;
+	}
+	updatePanorama([x[i], y[i]]);
+	document.getElementById("pindexitem").innerHTML = i;
+});
